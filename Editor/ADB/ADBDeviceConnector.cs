@@ -36,7 +36,7 @@ public class ADBDeviceConnector : EditorWindow
     private List<string> logMessages = new List<string>();
     private bool showLogs = false;
 
-    [MenuItem("ADB/ADB设备连接器 %&a")] // 添加快捷键 Ctrl+Alt+A
+    [MenuItem("依旧/Android开发/ADB设备连接器 %&a", false, 10)] // 添加快捷键 Ctrl+Alt+A
     public static void ShowWindow()
     {
         GetWindow<ADBDeviceConnector>("ADB设备连接器");
@@ -252,6 +252,22 @@ public class ADBDeviceConnector : EditorWindow
             }
 
             EditorGUI.indentLevel--;
+        }
+
+        // 添加底部分隔线
+        EditorGUILayout.Space();
+        Rect rect = EditorGUILayout.GetControlRect(false, 1);
+        EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
+        EditorGUILayout.Space();
+
+        // 添加作者信息
+        GUIStyle footerStyle = new GUIStyle(EditorStyles.miniLabel);
+        footerStyle.alignment = TextAnchor.MiddleCenter;
+        footerStyle.normal.textColor = new Color(0.5f, 0.5f, 0.8f);
+
+        if (GUILayout.Button("作者:依旧 | GitHub: https://github.com/YiJiu-Li", footerStyle))
+        {
+            Application.OpenURL("https://github.com/YiJiu-Li");
         }
     }
 

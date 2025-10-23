@@ -4,7 +4,7 @@ namespace YZJ
 {
     [CreateAssetMenu(
         fileName = "AndroidBuildTemplate",
-        menuName = "Build/Android Build Template",
+        menuName = "依旧/Android开发/Android构建模板",
         order = 1
     )]
     public class AndroidBuildTemplate : ScriptableObject

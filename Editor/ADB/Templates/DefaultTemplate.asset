@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dcb3993664c3d3c4ab0cb6449c3de21e, type: 3}
-  m_Name: AndroidBuildTemplate
+  m_Script: {fileID: 11500000, guid: 801ee5143e5e0e04aa8a3cf2b9c70120, type: 3}
+  m_Name: DefaultTemplate
   m_EditorClassIdentifier: 
-  appName: "\u6D4B\u8BD5\u5E94\u7528"
-  packageName: com.company.app
-  outputDirectory: Builds
+  appName: "\u9ED8\u8BA4\u5E94\u7528\u540D\u79F0"
+  packageName: com.company.default
+  outputDirectory: Builds/Android
   apkNameFormat: '{appName}_v{version}_{versionCode}.apk'
   keystorePath: 
   keystorePassword: 

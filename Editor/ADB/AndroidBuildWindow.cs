@@ -31,26 +31,78 @@ namespace YZJ
         private int selectedTemplateIndex = 0; // 当前选择的模板索引
         private List<EditorBuildSettingsScene> sceneList; // 当前打包的场景列表
 
-        [MenuItem("ADB/设置包名并构建Android")]
+        [MenuItem("依旧/Android开发/应用构建窗口 %&b", false, 20)]
         public static void ShowWindow()
         {
-            GetWindow<AndroidBuildWindow>("设置包名并构建Android");
+            GetWindow<AndroidBuildWindow>("Android构建窗口");
+        }
+
+        [MenuItem("依旧/Android开发/创建默认构建模板", false, 21)]
+        public static void CreateDefaultTemplateMenuItem()
+        {
+            CreateDefaultTemplate();
+            ShowWindow(); // 打开窗口
         }
 
         private void OnEnable()
         {
             // 加载所有模板资源
-            string[] guids = AssetDatabase.FindAssets(
-                "t:AndroidBuildTemplate",
-                new[] { "Assets/Framework/Editor/ADB/Templates" }
-            );
-            templates = new List<AndroidBuildTemplate>();
-            foreach (var guid in guids)
+            // 首先按类型搜索（优先），注意模块目录可能存在不同路径
+            string[] searchPaths = new[]
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                var template = AssetDatabase.LoadAssetAtPath<AndroidBuildTemplate>(path);
-                if (template != null)
-                    templates.Add(template);
+                "Assets/Framework/Editor/UnityAdbTools/Editor/ADB/Templates",
+                "Assets/Framework/Editor/ADB/Templates",
+                "Assets/Framework/Editor/ADB",
+                "Assets/Framework/Editor/UnityAdbTools/Editor/ADB",
+            };
+
+            templates = new List<AndroidBuildTemplate>();
+
+            // 尝试按类型查找
+            string[] guids = AssetDatabase.FindAssets("t:AndroidBuildTemplate");
+            if (guids != null && guids.Length > 0)
+            {
+                foreach (var guid in guids)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    var template = AssetDatabase.LoadAssetAtPath<AndroidBuildTemplate>(path);
+                    if (template != null)
+                        templates.Add(template);
+                }
+            }
+
+            // 如果按类型查找失败，则尝试在常见 Templates 目录下枚举 .asset 文件作为回退
+            if (templates.Count == 0)
+            {
+                foreach (var dir in searchPaths)
+                {
+                    if (!AssetDatabase.IsValidFolder(dir))
+                        continue;
+
+                    var assetPaths = Directory.GetFiles(
+                        dir,
+                        "*.asset",
+                        SearchOption.TopDirectoryOnly
+                    );
+                    foreach (var assetPath in assetPaths)
+                    {
+                        // AssetDatabase 使用相对路径且使用正斜杠
+                        string relativePath = assetPath.Replace("\\", "/");
+                        // Ensure path starts with Assets/
+                        int idx = relativePath.IndexOf("Assets/");
+                        if (idx >= 0)
+                            relativePath = relativePath.Substring(idx);
+
+                        var template = AssetDatabase.LoadAssetAtPath<AndroidBuildTemplate>(
+                            relativePath
+                        );
+                        if (template != null && !templates.Contains(template))
+                            templates.Add(template);
+                    }
+
+                    if (templates.Count > 0)
+                        break;
+                }
             }
             if (templates.Count == 0)
             {
@@ -75,10 +127,17 @@ namespace YZJ
                     "未找到任何模板，请在Templates文件夹创建Android Build Template资源。",
                     MessageType.Warning
                 );
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button("刷新模板列表"))
                 {
                     OnEnable();
                 }
+                if (GUILayout.Button("创建默认模板"))
+                {
+                    CreateDefaultTemplate();
+                    OnEnable(); // 创建后重新加载模板列表
+                }
+                GUILayout.EndHorizontal();
                 return;
             }
 
@@ -128,6 +187,22 @@ namespace YZJ
             {
                 SaveSceneSettings();
                 BuildAndroid(BuildOptions.AutoRunPlayer, currentTemplate);
+            }
+
+            // 添加底部分隔线
+            EditorGUILayout.Space();
+            Rect rect = EditorGUILayout.GetControlRect(false, 1);
+            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
+            EditorGUILayout.Space();
+
+            // 添加作者信息
+            GUIStyle footerStyle = new GUIStyle(EditorStyles.miniLabel);
+            footerStyle.alignment = TextAnchor.MiddleCenter;
+            footerStyle.normal.textColor = new Color(0.5f, 0.5f, 0.8f);
+
+            if (GUILayout.Button("作者:依旧 | GitHub: https://github.com/YiJiu-Li", footerStyle))
+            {
+                Application.OpenURL("https://github.com/YiJiu-Li");
             }
         }
 
@@ -246,6 +321,85 @@ namespace YZJ
                     versionCode = int.Parse(lines[1]);
                 }
             }
+        }
+
+        /// <summary>
+        /// 创建一个默认的Android打包模板
+        /// </summary>
+        private static void CreateDefaultTemplate()
+        {
+            // 确保目录存在
+            string templateDir = "Assets/Framework/Editor/UnityAdbTools/Editor/ADB/Templates";
+            if (!AssetDatabase.IsValidFolder(templateDir))
+            {
+                // 递归创建目录
+                string[] pathParts = templateDir.Split('/');
+                string currentPath = pathParts[0]; // Assets
+                for (int i = 1; i < pathParts.Length; i++)
+                {
+                    string folderName = pathParts[i];
+                    string parentPath = currentPath;
+                    currentPath = Path.Combine(currentPath, folderName);
+
+                    if (!AssetDatabase.IsValidFolder(currentPath))
+                    {
+                        string guid = AssetDatabase.CreateFolder(parentPath, folderName);
+                        if (string.IsNullOrEmpty(guid))
+                        {
+                            Debug.LogError($"无法创建目录: {currentPath}");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 创建默认模板
+            string assetPath = $"{templateDir}/DefaultTemplate.asset";
+
+            // 检查文件是否已存在
+            if (AssetDatabase.LoadAssetAtPath<AndroidBuildTemplate>(assetPath) != null)
+            {
+                bool replace = EditorUtility.DisplayDialog(
+                    "模板已存在",
+                    "默认模板文件已存在，是否替换？",
+                    "替换",
+                    "取消"
+                );
+
+                if (!replace)
+                {
+                    return;
+                }
+            }
+
+            // 创建ScriptableObject
+            var template = ScriptableObject.CreateInstance<AndroidBuildTemplate>();
+            template.appName = "默认应用名称";
+            template.packageName = "com.company.default";
+            template.outputDirectory = "Builds/Android";
+            template.apkNameFormat = "{appName}_v{version}_{versionCode}.apk";
+
+            // 如果是覆盖现有资源
+            if (File.Exists(assetPath))
+            {
+                AssetDatabase.DeleteAsset(assetPath);
+            }
+
+            // 保存资源
+            AssetDatabase.CreateAsset(template, assetPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // 在Project窗口中选中新创建的模板
+            var newTemplate = AssetDatabase.LoadAssetAtPath<AndroidBuildTemplate>(assetPath);
+            if (newTemplate != null)
+            {
+                Selection.activeObject = newTemplate;
+                EditorUtility.FocusProjectWindow();
+            }
+
+            Debug.Log($"已创建默认Android打包模板: {assetPath}");
+            EditorUtility.DisplayDialog("创建成功", $"已在 {templateDir} 创建默认模板！", "确定");
         }
 
         // 显示打包信息弹窗（模板版）
