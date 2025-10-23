@@ -1,4 +1,3 @@
-
 # Unity ADB Tools
 
 Unity ADB Tools 是一个简便易用的Unity编辑器扩展工具，用于管理Android设备连接、应用调试和打包。它提供了直观的用户界面，让开发者无需离开Unity编辑器即可完成ADB设备连接和应用打包部署工作。
@@ -66,6 +65,10 @@ Unity ADB Tools 是一个简便易用的Unity编辑器扩展工具，用于管�
 - Unity 2021.3 或更高版本
 - Android SDK 安装并配置
 - 具备ADB调试权限的Android设备
+
+## 版本历史
+
+- **v1.0.0** (2025年10月23日) - 初始版本发布，包含ADB设备连接和Android构建功能
 
 ## 贡献
 
