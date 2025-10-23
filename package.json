@@ -1,0 +1,24 @@
+{
+  "name": "com.yijiu.adbtool",
+  "version": "1.0.0",
+  "displayName": "Unity ADB Tools",
+  "description": "Unity编辑器ADB工具，方便Android设备连接、测试和打包应用。",
+  "unity": "2021.3",
+  "keywords": [
+    "unity",
+    "editor",
+    "android",
+    "adb",
+    "debug",
+    "build"
+  ],
+  "author": {
+    "name": "依旧",
+    "email": "1228267639@qq.com",
+    "url": "https://github.com/YiJiu-Li"
+  },
+  "license": "MIT",
+  "documentationUrl": "https://github.com/YiJiu-Li/UnityAdbTools",
+  "changelogUrl": "https://github.com/YiJiu-Li/UnityAdbTools/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/YiJiu-Li/UnityAdbTools/blob/main/LICENSE"
+}
